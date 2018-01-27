@@ -10,12 +10,14 @@ namespace DependencyInjection
     public class InjectBinding : IBinding
     {
         private readonly Type _type;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly InjectConfiguration _configuration;
+        private readonly string _configFunctionName;
 
-        public InjectBinding(IServiceProvider serviceProvider, Type type)
+        public InjectBinding(Type type, InjectConfiguration configuration, string configFunctionName)
         {
             _type = type;
-            _serviceProvider = serviceProvider;
+            _configuration = configuration;
+            _configFunctionName = configFunctionName;
         }
 
         public bool FromAttribute => true;
@@ -26,7 +28,8 @@ namespace DependencyInjection
         public async Task<IValueProvider> BindAsync(BindingContext context)
         {
             await Task.Yield();
-            var scope = InjectBindingProvider.Scopes.GetOrAdd(context.FunctionInstanceId, (_) => _serviceProvider.CreateScope());
+            var provider = _configuration.GetServiceProvider(_configFunctionName);
+            var scope = _configuration.Scopes.GetOrAdd(context.FunctionInstanceId, (_) => provider.CreateScope());
             var value = scope.ServiceProvider.GetRequiredService(_type);
             return await BindAsync(value, context.ValueContext);
         }

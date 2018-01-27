@@ -7,6 +7,14 @@ namespace DependencyInjection
 {
     public class ScopeCleanupFilter : IFunctionInvocationFilter, IFunctionExceptionFilter
     {
+        private readonly InjectConfiguration _injectConfiguration;
+
+        public ScopeCleanupFilter(InjectConfiguration injectConfiguration)
+        {
+            _injectConfiguration = injectConfiguration;
+        }
+
+
         public Task OnExceptionAsync(FunctionExceptionContext exceptionContext, CancellationToken cancellationToken)
         {
             RemoveScope(exceptionContext.FunctionInstanceId);
@@ -24,7 +32,7 @@ namespace DependencyInjection
 
         private void RemoveScope(Guid id)
         {
-            if (InjectBindingProvider.Scopes.TryRemove(id, out var scope))
+            if (_injectConfiguration.Scopes.TryRemove(id, out var scope))
             {
                 scope.Dispose();
             }

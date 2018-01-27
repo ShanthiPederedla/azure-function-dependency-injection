@@ -2,23 +2,30 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.WebJobs.Host.Executors;
 
 namespace DependencyInjection
 {
     public class InjectBindingProvider : IBindingProvider
     {
-        public static readonly ConcurrentDictionary<Guid, IServiceScope> Scopes =
-            new ConcurrentDictionary<Guid, IServiceScope>();
+        private readonly InjectConfiguration _configuration;
 
-        private readonly IServiceProvider _serviceProvider;
-
-        public InjectBindingProvider(IServiceProvider serviceProvider) =>
-            _serviceProvider = serviceProvider;
+        public InjectBindingProvider(InjectConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+            
 
         public Task<IBinding> TryCreateAsync(BindingProviderContext context)
         {
-            IBinding binding = new InjectBinding(_serviceProvider, context.Parameter.ParameterType);
+            var parameter = context.Parameter;
+            var attribute =
+                parameter.GetCustomAttribute<InjectAttribute>(false);
+            
+            IBinding binding = new InjectBinding(context.Parameter.ParameterType, _configuration, attribute.InjectConfigFunctionName);
             return Task.FromResult(binding);
         }
     }

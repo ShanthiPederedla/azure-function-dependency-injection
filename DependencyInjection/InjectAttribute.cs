@@ -8,5 +8,13 @@ namespace DependencyInjection
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
     public class InjectAttribute : Attribute
     {
+        public string InjectConfigFunctionName { get; private set; }
+
+        public InjectAttribute(string configFunctionName)
+        {
+            InjectConfigFunctionName = configFunctionName;
+        }
+        
+        
     }
 }
