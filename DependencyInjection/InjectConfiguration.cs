@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Azure.WebJobs.Host.Executors;
@@ -45,7 +46,6 @@ namespace DependencyInjection
         public void Initialize(ExtensionConfigContext context)
         {
             var services = new ServiceCollection();
-            RegisterServices(services);
             var serviceProvider = services.BuildServiceProvider(true);
 
             context
@@ -56,11 +56,8 @@ namespace DependencyInjection
             var filter = new ScopeCleanupFilter(this);
             registry.RegisterExtension(typeof(IFunctionInvocationFilter), filter);
             registry.RegisterExtension(typeof(IFunctionExceptionFilter), filter);
-        }
-        
-        private void RegisterServices(IServiceCollection services)
-        {
-            services.AddScoped<IGreeter, Greeter>();
+
+            context.Config.RegisterBindingExtensions(new InjectConfigurationTriggerBindingProvider(this));
         }
 
         protected virtual IServiceCollection CreateServiceCollection()
